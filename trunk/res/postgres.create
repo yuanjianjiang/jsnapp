@@ -1,0 +1,102 @@
+DROP INDEX ix_authhistory_ipaddress;
+DROP INDEX ix_authhistory_timestamp;
+DROP INDEX ix_authhistory_result;
+DROP INDEX ix_authhistory_type;
+DROP INDEX ix_authhistory_dbname;
+DROP INDEX ix_authhistory_username;
+DROP INDEX ix_groups_administrative;
+
+DROP TABLE authhistory;
+DROP TABLE memberships;
+DROP TABLE groups;
+DROP TABLE users;
+DROP TABLE parameters;
+DROP TABLE dual;
+
+CREATE TABLE dual(dummy VARCHAR(1));
+CREATE TABLE parameters(name VARCHAR, value VARCHAR, PRIMARY KEY(name));
+CREATE TABLE users(userid SERIAL NOT NULL, username VARCHAR NOT NULL, password VARCHAR NOT NULL, mdalg VARCHAR NOT NULL, admin BOOLEAN NOT NULL, actlocked BOOLEAN NOT NULL, pwdexpired BOOLEAN NOT NULL, PRIMARY KEY(userid), UNIQUE(username));
+CREATE TABLE groups(groupid SERIAL NOT NULL, groupname VARCHAR NOT NULL, administrative BOOLEAN NOT NULL, PRIMARY KEY(groupid), UNIQUE(groupname));
+CREATE TABLE memberships(groupid INTEGER NOT NULL, userid INTEGER NOT NULL, PRIMARY KEY(groupid, userid), FOREIGN KEY(groupid) REFERENCES groups(groupid), FOREIGN KEY(userid) REFERENCES users(userid));
+CREATE TABLE authhistory(username VARCHAR NOT NULL, dbname VARCHAR NOT NULL, type VARCHAR NOT NULL, result INTEGER NOT NULL, timestamp TIMESTAMP NOT NULL, ipaddress VARCHAR NOT NULL);
+
+CREATE INDEX ix_groups_administrative ON groups(administrative);
+CREATE INDEX ix_authhistory_username ON authhistory(username);
+CREATE INDEX ix_authhistory_dbname ON authhistory(dbname);
+CREATE INDEX ix_authhistory_type ON authhistory(type);
+CREATE INDEX ix_authhistory_result ON authhistory(result);
+CREATE INDEX ix_authhistory_timestamp ON authhistory(timestamp);
+CREATE INDEX ix_authhistory_ipaddress ON authhistory(ipaddress);
+
+CREATE OR REPLACE FUNCTION TIMESTAMP_TO_STRING(tmstamp TIMESTAMP WITH TIME ZONE, pcision VARCHAR) RETURNS VARCHAR AS
+$$
+BEGIN
+  IF tmstamp IS NULL THEN
+    RETURN NULL;
+  ELSIF pcision = 'minute' THEN
+    RETURN TO_CHAR(tmstamp, 'dd/mm/yyyy hh24:mi');
+  ELSIF pcision = 'hour' THEN
+    RETURN TO_CHAR(tmstamp, 'dd/mm/yyyy hh24');
+  ELSIF pcision = 'day' THEN
+    RETURN TO_CHAR(tmstamp, 'dd/mm/yyyy');
+  ELSIF pcision = 'month' THEN
+    RETURN TO_CHAR(tmstamp, 'mm/yyyy');
+  ELSIF pcision = 'year' THEN
+    RETURN TO_CHAR(tmstamp, 'yyyy');
+  ELSE
+    RETURN TO_CHAR(tmstamp, 'dd/mm/yyyy hh24:mi:ss');
+  END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION TIMESTAMP_TO_SECONDS(tmstamp TIMESTAMP WITH TIME ZONE) RETURNS BIGINT AS
+$$
+DECLARE
+  seconds BIGINT;
+BEGIN
+  seconds := EXTRACT(EPOCH FROM DATE_TRUNC('second', tmstamp));
+  RETURN seconds;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION STRING_TO_SECONDS(tmstamp VARCHAR) RETURNS BIGINT AS
+$$
+DECLARE
+  seconds BIGINT;
+BEGIN
+  seconds := EXTRACT(EPOCH FROM TO_TIMESTAMP(tmstamp, 'dd/mm/yyyy hh24:mi:ss'));
+  RETURN seconds;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION REASON_TO_STRING(reason INTEGER) RETURNS VARCHAR AS
+$$
+BEGIN
+  IF reason = 0 THEN
+    RETURN 'Successful';
+  ELSIF reason = 1 THEN
+    RETURN 'User does not exist';
+  ELSIF reason = 2 THEN
+    RETURN 'User locked out';
+  ELSIF reason = 3 THEN
+    RETURN 'Expired password';
+  ELSIF reason = 4 THEN
+    RETURN 'Incorrect password';
+  ELSIF reason = 5 THEN
+    RETURN 'Java Exception';
+  ELSIF reason = 6 THEN
+    RETURN 'Other';
+  ELSE
+    RETURN 'Incorrect Reason Code';
+  END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
+INSERT INTO dual VALUES('X');
+INSERT INTO parameters VALUES('password-mdalg', 'SHA-1');
+INSERT INTO users(username, password, mdalg, admin, actlocked, pwdexpired) VALUES('admin', 'passw0rd', 'PLAIN', true, false, true);
+COMMIT;

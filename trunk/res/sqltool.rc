@@ -1,0 +1,4 @@
+urlid internaldb
+url jdbc:hsqldb:file:/home/reha/temp/internaldb
+username sa
+password

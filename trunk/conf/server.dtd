@@ -1,0 +1,87 @@
+<!--==========================================-->
+<!-- Top configuration element                -->
+<!--==========================================-->
+
+<!ELEMENT configuration (internal, databases, listeners, workers, keystore?)>
+<!ATTLIST configuration
+	watchdog CDATA #REQUIRED
+>
+
+<!--==========================================-->
+<!-- Internal database configuration        -->
+<!--==========================================-->
+
+<!ELEMENT internal (driver, url, pool, idle)>
+
+<!ELEMENT driver (#PCDATA)>
+
+<!ELEMENT url (#PCDATA)>
+
+<!ELEMENT pool (#PCDATA)>
+
+<!ELEMENT idle (#PCDATA)>
+
+<!--==========================================-->
+<!-- Database configuration                   -->
+<!--==========================================-->
+
+<!ELEMENT databases (database*)>
+
+<!ELEMENT database (driver, url, pool, idle, initial, increment, multiplier, login, accesscontrol)>
+<!ATTLIST database
+	name ID #REQUIRED
+>
+
+<!--ELEMENT driver (#PCDATA) already defined -->
+
+<!--ELEMENT url (#PCDATA) already defined -->
+
+<!--ELEMENT pool (#PCDATA) already defined -->
+
+<!--ELEMENT idle (#PCDATA) already defined -->
+
+<!ELEMENT initial (#PCDATA)>
+
+<!ELEMENT increment (#PCDATA)>
+
+<!ELEMENT multiplier (#PCDATA)>
+
+<!ELEMENT login (#PCDATA)>
+
+<!ELEMENT accesscontrol (#PCDATA)>
+
+<!--==========================================-->
+<!-- Listener configuration                   -->
+<!--==========================================-->
+
+<!ELEMENT listeners (listener*)>
+
+<!ELEMENT listener (port, backlog, accepts)>
+
+<!ELEMENT port (#PCDATA)>
+
+<!ELEMENT backlog (#PCDATA)>
+
+<!ELEMENT accepts (#PCDATA)>
+
+<!--==========================================-->
+<!-- Worker configuration                     -->
+<!--==========================================-->
+
+<!ELEMENT workers (core, max, idle)>
+
+<!ELEMENT core (#PCDATA)>
+
+<!ELEMENT max (#PCDATA)>
+
+<!--ELEMENT idle (#PCDATA) already defined -->
+
+<!--==========================================-->
+<!-- Keystore configuration                   -->
+<!--==========================================-->
+
+<!ELEMENT keystore (url, password)>
+
+<!--ELEMENT url (#PCDATA) already defined -->
+
+<!ELEMENT password (#PCDATA)>

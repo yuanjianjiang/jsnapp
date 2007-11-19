@@ -1,0 +1,33 @@
+.darkgray {background-color:#dddddd}
+.lightgray {background-color:#eeeeee}
+.info {background-color:#eed8d8}
+.header {background-color:#606060}
+
+body {margin:6px 6px 6px 6px}
+
+table {empty-cells:show;border-collapse:separate}
+
+tr,td,a,b,i,p {font-size:14px;font-family:verdana;color:#000000}
+.light {color:#ffffff}
+.notify {color:#008000}
+.error {color:#ff0000}
+a {text-decoration:none}
+a:link,a:visited {color:#0000aa}
+a.light:link,a.light:visited {color:#ffff00}
+a:hover {color:#aa0000}
+a.light:hover {color:#00ffff}
+
+input,select,option,label {font-size:14px;font-family:verdana;color:#000000}
+input,select {border:solid 1px}
+.inline {font-size:13px;color:#800000;background-color:#eeeeee;border-color:#000000}
+.button {border:solid 2px;border-top-color:#666600;border-left-color:#666600;border-bottom-color:#333300;border-right-color:#333300;background-color:#eeeec8}
+.radio {border:none;margin-left:0px}
+.checkbox {border:none;margin-left:0px}
+
+table.main {border-style:solid;border-width:1px;border-spacing:1px;border-color:#000088}
+tr.header {background-color:#888888}
+tr.gray {background-color:#d0d0d0}
+tr.white {background-color:#f0f0f0}
+td.header {border-width:1px;border-style:inset;border-color:#000088;padding:4px;color:#ffffff;font-weight:bold}
+td.gray {border-width:1px;border-style:inset;border-color:#000088;padding:4px}
+td.white {border-width:1px;border-style:inset;border-color:#000088;padding:4px}
