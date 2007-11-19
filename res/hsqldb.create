@@ -1,0 +1,41 @@
+DROP INDEX ix_authhistory_ipaddress;
+DROP INDEX ix_authhistory_timestamp;
+DROP INDEX ix_authhistory_result;
+DROP INDEX ix_authhistory_type;
+DROP INDEX ix_authhistory_dbname;
+DROP INDEX ix_authhistory_username;
+DROP INDEX ix_groups_administrative;
+
+DROP TABLE authhistory;
+DROP TABLE memberships;
+DROP TABLE groups;
+DROP TABLE users;
+DROP TABLE parameters;
+DROP TABLE dual;
+
+CREATE TABLE dual(dummy VARCHAR);
+CREATE TABLE parameters(name VARCHAR, value VARCHAR, PRIMARY KEY(name));
+CREATE TABLE users(userid IDENTITY NOT NULL, username VARCHAR NOT NULL, password VARCHAR NOT NULL, mdalg VARCHAR NOT NULL, admin BOOLEAN NOT NULL, actlocked BOOLEAN NOT NULL, pwdexpired BOOLEAN NOT NULL, UNIQUE(username));
+ALTER TABLE users ALTER COLUMN userid RESTART WITH 1;
+CREATE TABLE groups(groupid IDENTITY NOT NULL, groupname VARCHAR NOT NULL, administrative BOOLEAN NOT NULL, UNIQUE(groupname));
+ALTER TABLE groups ALTER COLUMN groupid RESTART WITH 1;
+CREATE TABLE memberships(groupid INTEGER NOT NULL, userid INTEGER NOT NULL, PRIMARY KEY(groupid, userid), FOREIGN KEY(groupid) REFERENCES groups(groupid), FOREIGN KEY(userid) REFERENCES users(userid));
+CREATE TABLE authhistory(username VARCHAR NOT NULL, dbname VARCHAR NOT NULL, type VARCHAR NOT NULL, result INTEGER NOT NULL, timestamp TIMESTAMP NOT NULL, ipaddress VARCHAR NOT NULL);
+
+CREATE INDEX ix_groups_administrative ON groups(administrative);
+CREATE INDEX ix_authhistory_username ON authhistory(username);
+CREATE INDEX ix_authhistory_dbname ON authhistory(dbname);
+CREATE INDEX ix_authhistory_type ON authhistory(type);
+CREATE INDEX ix_authhistory_result ON authhistory(result);
+CREATE INDEX ix_authhistory_timestamp ON authhistory(timestamp);
+CREATE INDEX ix_authhistory_ipaddress ON authhistory(ipaddress);
+
+CREATE ALIAS TIMESTAMP_TO_STRING FOR "org.jsnap.util.JUtility.toString";
+CREATE ALIAS TIMESTAMP_TO_SECONDS FOR "org.jsnap.util.JUtility.tsToSeconds";
+CREATE ALIAS STRING_TO_SECONDS FOR "org.jsnap.util.JUtility.sToSeconds";
+CREATE ALIAS REASON_TO_STRING FOR "org.jsnap.exception.security.PasswordManagementException.reasonText";
+
+INSERT INTO dual VALUES('X');
+INSERT INTO parameters VALUES('password-mdalg', 'SHA-1');
+INSERT INTO users VALUES(NULL, 'admin', 'passw0rd', 'PLAIN', true, false, true);
+COMMIT;

@@ -1,0 +1,74 @@
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+	<!--======================-->
+	<!-- CONFIGURED APPENDERS -->
+	<!--======================-->
+
+	<appender name="SYSOUT" class="org.apache.log4j.ConsoleAppender">
+		<param name="Target" value="System.out"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{dd/MM/yyyy HH:mm:ss} %-5p [%t] %m%n"/>
+		</layout>
+	</appender>
+	<appender name="SYSERR" class="org.apache.log4j.ConsoleAppender">
+		<param name="Target" value="System.err"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{dd/MM/yyyy HH:mm:ss} %-5p [%t] %m%n"/>
+		</layout>
+	</appender>
+	<appender name="ROLLINGFILE" class="org.apache.log4j.RollingFileAppender">
+		<param name="File" value="jsnap.log"/>
+		<param name="Append" value="true"/>
+		<param name="MaxFileSize" value="1MB"/>
+		<param name="MaxBackupIndex" value="1"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{dd/MM/yyyy HH:mm:ss} %-5p [%t] %m%n"/>
+		</layout>
+	</appender>
+
+	<!--======================-->
+	<!-- SOME OTHER APPENDERS -->
+	<!--======================-->
+
+	<!--appender name="NULL" class="org.apache.log4j.varia.NullAppender"/-->
+	<!--appender name="FILE" class="org.apache.log4j.FileAppender">
+		<param name="File" value="jsnap.log"/>
+		<param name="Append" value="true"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{dd/MM/yyyy HH:mm:ss} %-5p [%t] %m%n"/>
+		</layout>
+	</appender-->
+	<!--appender name="DAILYROLLINGFILE" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="jsnap.log"/>
+		<param name="Append" value="true"/>
+		<param name="Threshold" value="DEBUG"/>
+		<param name="DatePattern" value="'.'yyyy-MM-dd"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d{dd/MM/yyyy HH:mm:ss} %-5p [%t] %m%n"/>
+		</layout>
+	</appender-->
+
+	<logger name="org.jsnap.server.Workers$Worker">
+		<level value="DEBUG"/>
+	</logger>
+	<logger name="org.jsnap.http.WebConsoleRequest$WebConsoleServlet">
+		<level value="DEBUG"/>
+	</logger>
+	<!--logger name="org.jsnap.db.base.DbInstanceTracker">
+		<level value="DEBUG"/>
+	</logger>
+	<logger name="org.jsnap.response.ResponseTracker">
+		<level value="DEBUG"/>
+	</logger-->
+	<logger name="org.jsnap.exception" additivity="false">
+		<level value="ALL"/>
+		<appender-ref ref="SYSERR"/>
+		<appender-ref ref="ROLLINGFILE"/>
+	</logger>
+
+	<root>
+	    <level value="INFO"/>
+		<appender-ref ref="SYSOUT"/>
+		<appender-ref ref="ROLLINGFILE"/>
+	</root>
+</log4j:configuration>

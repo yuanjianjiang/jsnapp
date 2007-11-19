@@ -1,0 +1,747 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="/style.css"/>
+    <title>HTTP Request Executor</title>
+    <script type="text/javascript">
+    <!--
+    function setState(nr, disp) {
+      if (document.layers)
+        document.layers[nr].display = disp;
+      else if (document.all)
+        document.all[nr].style.display = disp;
+      else if (document.getElementById)
+        document.getElementById(nr).style.display = disp;
+    }
+
+    function visible(nr) {
+      setState(nr, 'block');
+    }
+
+    function invisible(nr) {
+      setState(nr, 'none');
+    }
+
+    function countVisible() {
+      count = 0;
+      if (document.query.parameter1state.value == 'on')
+        count = count + 1;
+      if (document.query.parameter2state.value == 'on')
+        count = count + 1;
+      if (document.query.parameter3state.value == 'on')
+        count = count + 1;
+      if (document.query.parameter4state.value == 'on')
+        count = count + 1;
+      if (document.query.parameter5state.value == 'on')
+        count = count + 1;
+      if (document.query.parameter6state.value == 'on')
+        count = count + 1;
+      if (document.query.parameter7state.value == 'on')
+        count = count + 1;
+      if (document.query.parameter8state.value == 'on')
+        count = count + 1;
+      if (document.query.parameter9state.value == 'on')
+        count = count + 1;
+      if (document.query.parameter10state.value == 'on')
+        count = count + 1;
+      return count;
+    }
+
+    function removeParameter(parameter) {
+      if (parameter == 'parameter1')
+        document.query.parameter1state.value = 'off';
+      else if (parameter == 'parameter2')
+        document.query.parameter2state.value = 'off';
+      else if (parameter == 'parameter3')
+        document.query.parameter3state.value = 'off';
+      else if (parameter == 'parameter4')
+        document.query.parameter4state.value = 'off';
+      else if (parameter == 'parameter5')
+        document.query.parameter5state.value = 'off';
+      else if (parameter == 'parameter6')
+        document.query.parameter6state.value = 'off';
+      else if (parameter == 'parameter7')
+        document.query.parameter7state.value = 'off';
+      else if (parameter == 'parameter8')
+        document.query.parameter8state.value = 'off';
+      else if (parameter == 'parameter9')
+        document.query.parameter9state.value = 'off';
+      else if (parameter == 'parameter10')
+        document.query.parameter10state.value = 'off';
+      else
+        return;
+      invisible(parameter);
+      count = countVisible();
+      if (count == 9)
+        visible('parameteradd');
+    }
+
+    function addParameter() {
+      count = countVisible();
+      if (count == 9)
+        invisible('parameteradd');
+      else if (count == 10)
+        return;
+      if (document.query.parameter1state.value == 'off') {
+        document.query.parameter1state.value = 'on';
+        visible('parameter1');
+      } else if (document.query.parameter2state.value == 'off') {
+        document.query.parameter2state.value = 'on';
+        visible('parameter2');
+      } else if (document.query.parameter3state.value == 'off') {
+        document.query.parameter3state.value = 'on';
+        visible('parameter3');
+      } else if (document.query.parameter4state.value == 'off') {
+        document.query.parameter4state.value = 'on';
+        visible('parameter4');
+      } else if (document.query.parameter5state.value == 'off') {
+        document.query.parameter5state.value = 'on';
+        visible('parameter5');
+      } else if (document.query.parameter6state.value == 'off') {
+        document.query.parameter6state.value = 'on';
+        visible('parameter6');
+      } else if (document.query.parameter7state.value == 'off') {
+        document.query.parameter7state.value = 'on';
+        visible('parameter7');
+      } else if (document.query.parameter8state.value == 'off') {
+        document.query.parameter8state.value = 'on';
+        visible('parameter8');
+      } else if (document.query.parameter9state.value == 'off') {
+        document.query.parameter9state.value = 'on';
+        visible('parameter9');
+      } else if (document.query.parameter10state.value == 'off') {
+        document.query.parameter10state.value = 'on';
+        visible('parameter10');
+      }
+    }
+
+    function showParameters() {
+      if (document.query.parameter1state.value == 'off')
+        invisible('parameter1');
+      else
+        visible('parameter1');
+      if (document.query.parameter2state.value == 'off')
+        invisible('parameter2');
+      else
+        visible('parameter2');
+      if (document.query.parameter3state.value == 'off')
+        invisible('parameter3');
+      else
+        visible('parameter3');
+      if (document.query.parameter4state.value == 'off')
+        invisible('parameter4');
+      else
+        visible('parameter4');
+      if (document.query.parameter5state.value == 'off')
+        invisible('parameter5');
+      else
+        visible('parameter5');
+      if (document.query.parameter6state.value == 'off')
+        invisible('parameter6');
+      else
+        visible('parameter5');
+      if (document.query.parameter7state.value == 'off')
+        invisible('parameter7');
+      else
+        visible('parameter7');
+      if (document.query.parameter8state.value == 'off')
+        invisible('parameter8');
+      else
+        visible('parameter8');
+      if (document.query.parameter9state.value == 'off')
+        invisible('parameter9');
+      else
+        visible('parameter9');
+      if (document.query.parameter10state.value == 'off')
+        invisible('parameter10');
+      else
+        visible('parameter10');
+      count = countVisible();
+      if (count == 10)
+        invisible('parameteradd');
+    }
+
+    function init() {
+      showParameters();
+      vendorSpecificParameter('parameter1');
+      vendorSpecificParameter('parameter2');
+      vendorSpecificParameter('parameter3');
+      vendorSpecificParameter('parameter4');
+      vendorSpecificParameter('parameter5');
+      vendorSpecificParameter('parameter6');
+      vendorSpecificParameter('parameter7');
+      vendorSpecificParameter('parameter8');
+      vendorSpecificParameter('parameter9');
+      vendorSpecificParameter('parameter10');
+      showOnlyRelated();
+    }
+
+    function vendorSpecificParameter(parameter) {
+      if (parameter == 'parameter1') {
+        if (document.query.parameter1type.value == 0) {
+          visible('parameter1other');
+        } else {
+          invisible('parameter1other');
+        }
+      } else if (parameter == 'parameter2') {
+        if (document.query.parameter2type.value == 0) {
+          visible('parameter2other');
+        } else {
+          invisible('parameter2other');
+        }
+      } else if (parameter == 'parameter3') {
+        if (document.query.parameter3type.value == 0) {
+          visible('parameter3other');
+        } else {
+          invisible('parameter3other');
+        }
+      } else if (parameter == 'parameter4') {
+        if (document.query.parameter4type.value == 0) {
+          visible('parameter4other');
+        } else {
+          invisible('parameter4other');
+        }
+      } else if (parameter == 'parameter5') {
+        if (document.query.parameter5type.value == 0) {
+          visible('parameter5other');
+        } else {
+          invisible('parameter5other');
+        }
+      } else if (parameter == 'parameter6') {
+        if (document.query.parameter6type.value == 0) {
+          visible('parameter6other');
+        } else {
+          invisible('parameter6other');
+        }
+      } else if (parameter == 'parameter7') {
+        if (document.query.parameter7type.value == 0) {
+          visible('parameter7other');
+        } else {
+          invisible('parameter7other');
+        }
+      } else if (parameter == 'parameter8') {
+        if (document.query.parameter8type.value == 0) {
+          visible('parameter8other');
+        } else {
+          invisible('parameter8other');
+        }
+      } else if (parameter == 'parameter9') {
+        if (document.query.parameter9type.value == 0) {
+          visible('parameter9other');
+        } else {
+          invisible('parameter9other');
+        }
+      } else if (parameter == 'parameter10') {
+        if (document.query.parameter10type.value == 0) {
+          visible('parameter10other');
+        } else {
+          invisible('parameter10other');
+        }
+      }
+    }
+
+    function showOnlyRelated() {
+        if (document.query.command.value == 'execute') {
+          visible('databaseLabel'); visible('databaseInput');
+          visible('sqlLabel'); visible('sqlInput');
+          visible('formatterLabel'); visible('formatterInput');
+          visible('timeoutLabel'); visible('timeoutInput');
+          invisible('keepaliveLabel'); invisible('keepaliveInput');
+          visible('zipLabel'); visible('zipInput');
+          invisible('keyLabel'); invisible('keyInput');
+          visible('fromLabel'); visible('fromInput');
+          visible('toLabel'); visible('toInput');
+          visible('maxrowsLabel'); visible('maxrowsInput');
+          visible('usernameLabel'); visible('usernameInput');
+          visible('passwordLabel'); visible('passwordInput');
+          visible('parametersLabel'); visible('parameteradd');
+          showParameters();
+        } else if (document.query.command.value == 'reserve') {
+          visible('databaseLabel'); visible('databaseInput');
+          visible('sqlLabel'); visible('sqlInput');
+          visible('formatterLabel'); visible('formatterInput');
+          visible('timeoutLabel'); visible('timeoutInput');
+          visible('keepaliveLabel'); visible('keepaliveInput');
+          visible('zipLabel'); visible('zipInput');
+          invisible('keyLabel'); invisible('keyInput');
+          invisible('fromLabel'); invisible('fromInput');
+          invisible('toLabel'); invisible('toInput');
+          visible('maxrowsLabel'); visible('maxrowsInput');
+          visible('usernameLabel'); visible('usernameInput');
+          visible('passwordLabel'); visible('passwordInput');
+          visible('parametersLabel'); visible('parameteradd');
+          showParameters();
+        } else if (document.query.command.value == 'access') {
+          invisible('databaseLabel'); invisible('databaseInput');
+          invisible('sqlLabel'); invisible('sqlInput');
+          invisible('formatterLabel'); invisible('formatterInput');
+          visible('timeoutLabel'); visible('timeoutInput');
+          invisible('keepaliveLabel'); invisible('keepaliveInput');
+          visible('zipLabel'); visible('zipInput');
+          visible('keyLabel'); visible('keyInput');
+          visible('fromLabel'); visible('fromInput');
+          visible('toLabel'); visible('toInput');
+          invisible('maxrowsLabel'); invisible('maxrowsInput');
+          visible('usernameLabel'); visible('usernameInput');
+          visible('passwordLabel'); visible('passwordInput');
+          invisible('parametersLabel'); invisible('parameteradd');
+          invisible('parameter1'); invisible('parameter2'); invisible('parameter3');
+          invisible('parameter4'); invisible('parameter5'); invisible('parameter6');
+          invisible('parameter7'); invisible('parameter8'); invisible('parameter9'); invisible('parameter10');
+        } else if (document.query.command.value == 'commit') {
+          invisible('databaseLabel'); invisible('databaseInput');
+          invisible('sqlLabel'); invisible('sqlInput');
+          invisible('formatterLabel'); invisible('formatterInput');
+          visible('timeoutLabel'); visible('timeoutInput');
+          invisible('keepaliveLabel'); invisible('keepaliveInput');
+          visible('zipLabel'); visible('zipInput');
+          visible('keyLabel'); visible('keyInput');
+          invisible('fromLabel'); invisible('fromInput');
+          invisible('toLabel'); invisible('toInput');
+          invisible('maxrowsLabel'); invisible('maxrowsInput');
+          visible('usernameLabel'); visible('usernameInput');
+          visible('passwordLabel'); visible('passwordInput');
+          invisible('parametersLabel'); invisible('parameteradd');
+          invisible('parameter1'); invisible('parameter2'); invisible('parameter3');
+          invisible('parameter4'); invisible('parameter5'); invisible('parameter6');
+          invisible('parameter7'); invisible('parameter8'); invisible('parameter9'); invisible('parameter10');
+        } else if (document.query.command.value == 'rollback') {
+          invisible('databaseLabel'); invisible('databaseInput');
+          invisible('sqlLabel'); invisible('sqlInput');
+          invisible('formatterLabel'); invisible('formatterInput');
+          visible('timeoutLabel'); visible('timeoutInput');
+          invisible('keepaliveLabel'); invisible('keepaliveInput');
+          visible('zipLabel'); visible('zipInput');
+          visible('keyLabel'); visible('keyInput');
+          invisible('fromLabel'); invisible('fromInput');
+          invisible('toLabel'); invisible('toInput');
+          invisible('maxrowsLabel'); invisible('maxrowsInput');
+          visible('usernameLabel'); visible('usernameInput');
+          visible('passwordLabel'); visible('passwordInput');
+          invisible('parametersLabel'); invisible('parameteradd');
+          invisible('parameter1'); invisible('parameter2'); invisible('parameter3');
+          invisible('parameter4'); invisible('parameter5'); invisible('parameter6');
+          invisible('parameter7'); invisible('parameter8'); invisible('parameter9'); invisible('parameter10');
+        }
+    }
+    // -->
+    </script>
+  </head>
+  <body onload="init();">
+  <form method="post" name="query" action="https://localhost:52663/execute">
+  <table>
+  <tr valign="center">
+    <td colspan="2"><input type="submit" value="Execute"/></td>
+  </tr>
+  <tr valign="center">
+    <td><b>Command:</b></td>
+    <td>
+      <select name="command" onchange="showOnlyRelated();">
+      <option value="execute" selected="true">Execute an SQL</option>
+      <option value="reserve">Execute an SQL and reserve for future reference</option>
+      <option value="access">Access a previously executed statement's data</option>
+      <option value="commit">Commit a previously executed statement</option>
+      <option value="rollback">Rollback a previously executed statement</option>
+      </select>
+    </td>
+  </tr>
+  <tr valign="center">
+    <td><label id="databaseLabel"><b>Database:</b></label></td>
+    <td><input id="databaseInput" type="text" name="database" value="internaldb"/></td>
+  </tr>
+  <tr valign="center">
+    <td><label id="sqlLabel"><b>SQL:</b></label></td>
+    <td><textarea id="sqlInput" name="sql" rows="5" cols="40">SELECT *
+  FROM authhistory
+ WHERE username = ?
+   AND result = ? ORDER BY timestamp</textarea></td>
+  </tr>
+  <tr valign="center">
+    <td><label id="formatterLabel"><b>Formatter:</b></label></td>
+    <td>
+    <select id="formatterInput" name="formatter">
+      <option value="org.jsnap.response.CSVFormatter?header=true">CSVFormatter</option>
+      <option value="org.jsnap.response.XMLFormatter?metadata=true&resultset=query&record=row&nocaps=true">XMLFormatter</option>
+      <option value="org.jsnap.response.HTMLFormatter?css=https://localhost:8080/style.css&home=https://localhost:8080/SqlExecutor.html&perpage=10" selected="true">HTMLFormatter</option>
+    </select>
+    </td>
+    <!--td><input id="formatterInput" type="text" name="formatter" value="org.jsnap.response.XMLFormatter?metadata=true&resultset=query&record=row&nocaps=true"/></td-->
+  </tr>
+  <tr valign="center">
+    <td><label id="timeoutLabel"><b>Timeout:</b></label></td>
+    <td><input id="timeoutInput" type="text" name="timeout" value="3000"/></td>
+  </tr>
+  <tr valign="center">
+    <td><label id="keepaliveLabel"><b>Keepalive:</b></label></td>
+    <td><input id="keepaliveInput" type="text" name="keepalive" value="120000"/></td>
+  </tr>
+  <tr valign="center">
+    <td><label id="zipLabel"><b>Zip:</b></label></td>
+    <td><input id="zipInput" type="text" name="zip" value="1"/></td>
+  </tr>
+  <tr valign="center">
+    <td><label id="keyLabel"><b>Key:</b></label></td>
+    <td><input id="keyInput" type="text" name="key" value=""/></td>
+  </tr>
+  <tr valign="center">
+    <td><label id="fromLabel"><b>From:</b></label></td>
+    <td><input id="fromInput" type="text" name="from" value="0"/></td>
+  </tr>
+  <tr valign="center">
+    <td><label id="toLabel"><b>To:</b></label></td>
+    <td><input id="toInput" type="text" name="to" value="0"/></td>
+  </tr>
+  <tr valign="center">
+    <td><label id="maxrowsLabel"><b>Maxrows:</b></label></td>
+    <td><input id="maxrowsInput" type="text" name="maxrows" value="50"/></td>
+  </tr>
+  <tr valign="center">
+    <td><label id="usernameLabel"><b>Username:</b></label></td>
+    <td><input id="usernameInput" type="text" name="username" value="admin"/></td>
+  </tr>
+  <tr valign="center">
+    <td><label id="passwordLabel"><b>Password:</b></label></td>
+    <td><input id="passwordInput" type="password" name="password" value="password"/></td>
+  </tr>
+  <tr valign="center">
+    <input type="hidden" name="maxparameters" value="10"/>
+    <td><label id="parametersLabel"><b>Parameters:</b></label></td>
+    <td>
+      <input type="hidden" name="parameter1state" value="on"/>
+      <table id="parameter1">
+      <tr>
+        <td>Type:</td>
+        <td></td>
+        <td>Value:</td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <select name="parameter1type" onchange="vendorSpecificParameter('parameter1');">
+          <option value="0">Vendor Specific</option>
+          <option value="1" selected="true">String</option>
+          <option value="2">Byte</option>
+          <option value="3">Short</option>
+          <option value="4">Integer</option>
+          <option value="5">Long</option>
+          <option value="6">Float</option>
+          <option value="7">Double</option>
+          <option value="8">Numeric</option>
+          <option value="9">Boolean</option>
+          <option value="10">Date</option>
+          <option value="11">Time</option>
+          <option value="12">Timestamp</option>
+          </select>
+        </td>
+        <td><input id="parameter1other" type="text" name="parameter1other" value=""/></td>
+        <td><input type="text" name="parameter1value" value="admin"/></td>
+        <td><input class="checkbox" type="checkbox" name="parameter1isnull">Is null?</input></td>
+        <td><a href="#" onclick="removeParameter('parameter1');return false;"><small>Remove</small></a></td>
+      </tr>
+      </table>
+      <input type="hidden" name="parameter2state" value="on"/>
+      <table id="parameter2">
+      <tr>
+        <td>Type:</td>
+        <td></td>
+        <td>Value:</td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <select name="parameter2type" onchange="vendorSpecificParameter('parameter2');">
+          <option value="0">Vendor Specific</option>
+          <option value="1">String</option>
+          <option value="2">Byte</option>
+          <option value="3">Short</option>
+          <option value="4" selected="true">Integer</option>
+          <option value="5">Long</option>
+          <option value="6">Float</option>
+          <option value="7">Double</option>
+          <option value="8">Numeric</option>
+          <option value="9">Boolean</option>
+          <option value="10">Date</option>
+          <option value="11">Time</option>
+          <option value="12">Timestamp</option>
+          </select>
+        </td>
+        <td><input id="parameter2other" type="text" name="parameter2other" value=""/></td>
+        <td><input type="text" name="parameter2value" value="0"/></td>
+        <td><input class="checkbox" type="checkbox" name="parameter2isnull">Is null?</input></td>
+        <td><a href="#" onclick="removeParameter('parameter2');return false;"><small>Remove</small></a></td>
+      </tr>
+      </table>
+      <input type="hidden" name="parameter3state" value="off"/>
+      <table id="parameter3">
+      <tr>
+        <td>Type:</td>
+        <td></td>
+        <td>Value:</td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <select name="parameter3type" onchange="vendorSpecificParameter('parameter3');">
+          <option value="0">Vendor Specific</option>
+          <option value="1" selected="true">String</option>
+          <option value="2">Byte</option>
+          <option value="3">Short</option>
+          <option value="4">Integer</option>
+          <option value="5">Long</option>
+          <option value="6">Float</option>
+          <option value="7">Double</option>
+          <option value="8">Numeric</option>
+          <option value="9">Boolean</option>
+          <option value="10">Date</option>
+          <option value="11">Time</option>
+          <option value="12">Timestamp</option>
+          </select>
+        </td>
+        <td><input id="parameter3other" type="text" name="parameter3other" value=""/></td>
+        <td><input type="text" name="parameter3value" value=""/></td>
+        <td><input class="checkbox" type="checkbox" name="parameter3isnull">Is null?</input></td>
+        <td><a href="#" onclick="removeParameter('parameter3');return false;"><small>Remove</small></a></td>
+      </tr>
+      </table>
+      <input type="hidden" name="parameter4state" value="off"/>
+      <table id="parameter4">
+      <tr>
+        <td>Type:</td>
+        <td></td>
+        <td>Value:</td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <select name="parameter4type" onchange="vendorSpecificParameter('parameter4');">
+          <option value="0">Vendor Specific</option>
+          <option value="1" selected="true">String</option>
+          <option value="2">Byte</option>
+          <option value="3">Short</option>
+          <option value="4">Integer</option>
+          <option value="5">Long</option>
+          <option value="6">Float</option>
+          <option value="7">Double</option>
+          <option value="8">Numeric</option>
+          <option value="9">Boolean</option>
+          <option value="10">Date</option>
+          <option value="11">Time</option>
+          <option value="12">Timestamp</option>
+          </select>
+        </td>
+        <td><input id="parameter4other" type="text" name="parameter4other" value=""/></td>
+        <td><input type="text" name="parameter4value" value=""/></td>
+        <td><input class="checkbox" type="checkbox" name="parameter4isnull">Is null?</input></td>
+        <td><a href="#" onclick="removeParameter('parameter4');return false;"><small>Remove</small></a></td>
+      </tr>
+      </table>
+      <input type="hidden" name="parameter5state" value="off"/>
+      <table id="parameter5">
+      <tr>
+        <td>Type:</td>
+        <td></td>
+        <td>Value:</td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <select name="parameter5type" onchange="vendorSpecificParameter('parameter5');">
+          <option value="0">Vendor Specific</option>
+          <option value="1" selected="true">String</option>
+          <option value="2">Byte</option>
+          <option value="3">Short</option>
+          <option value="4">Integer</option>
+          <option value="5">Long</option>
+          <option value="6">Float</option>
+          <option value="7">Double</option>
+          <option value="8">Numeric</option>
+          <option value="9">Boolean</option>
+          <option value="10">Date</option>
+          <option value="11">Time</option>
+          <option value="12">Timestamp</option>
+          </select>
+        </td>
+        <td><input id="parameter5other" type="text" name="parameter5other" value=""/></td>
+        <td><input type="text" name="parameter5value" value=""/></td>
+        <td><input class="checkbox" type="checkbox" name="parameter5isnull">Is null?</input></td>
+        <td><a href="#" onclick="removeParameter('parameter5');return false;"><small>Remove</small></a></td>
+      </tr>
+      </table>
+      <input type="hidden" name="parameter6state" value="off"/>
+      <table id="parameter6">
+      <tr>
+        <td>Type:</td>
+        <td></td>
+        <td>Value:</td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <select name="parameter6type" onchange="vendorSpecificParameter('parameter6');">
+          <option value="0">Vendor Specific</option>
+          <option value="1" selected="true">String</option>
+          <option value="2">Byte</option>
+          <option value="3">Short</option>
+          <option value="4">Integer</option>
+          <option value="5">Long</option>
+          <option value="6">Float</option>
+          <option value="7">Double</option>
+          <option value="8">Numeric</option>
+          <option value="9">Boolean</option>
+          <option value="10">Date</option>
+          <option value="11">Time</option>
+          <option value="12">Timestamp</option>
+          </select>
+        </td>
+        <td><input id="parameter6other" type="text" name="parameter6other" value=""/></td>
+        <td><input type="text" name="parameter6value" value=""/></td>
+        <td><input class="checkbox" type="checkbox" name="parameter6isnull">Is null?</input></td>
+        <td><a href="#" onclick="removeParameter('parameter6');return false;"><small>Remove</small></a></td>
+      </tr>
+      </table>
+      <input type="hidden" name="parameter7state" value="off"/>
+      <table id="parameter7">
+      <tr>
+        <td>Type:</td>
+        <td></td>
+        <td>Value:</td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <select name="parameter7type" onchange="vendorSpecificParameter('parameter7');">
+          <option value="0">Vendor Specific</option>
+          <option value="1" selected="true">String</option>
+          <option value="2">Byte</option>
+          <option value="3">Short</option>
+          <option value="4">Integer</option>
+          <option value="5">Long</option>
+          <option value="6">Float</option>
+          <option value="7">Double</option>
+          <option value="8">Numeric</option>
+          <option value="9">Boolean</option>
+          <option value="10">Date</option>
+          <option value="11">Time</option>
+          <option value="12">Timestamp</option>
+          </select>
+        </td>
+        <td><input id="parameter7other" type="text" name="parameter7other" value=""/></td>
+        <td><input type="text" name="parameter7value" value=""/></td>
+        <td><input class="checkbox" type="checkbox" name="parameter7isnull">Is null?</input></td>
+        <td><a href="#" onclick="removeParameter('parameter7');return false;"><small>Remove</small></a></td>
+      </tr>
+      </table>
+      <input type="hidden" name="parameter8state" value="off"/>
+      <table id="parameter8">
+      <tr>
+        <td>Type:</td>
+        <td></td>
+        <td>Value:</td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <select name="parameter8type" onchange="vendorSpecificParameter('parameter8');">
+          <option value="0">Vendor Specific</option>
+          <option value="1" selected="true">String</option>
+          <option value="2">Byte</option>
+          <option value="3">Short</option>
+          <option value="4">Integer</option>
+          <option value="5">Long</option>
+          <option value="6">Float</option>
+          <option value="7">Double</option>
+          <option value="8">Numeric</option>
+          <option value="9">Boolean</option>
+          <option value="10">Date</option>
+          <option value="11">Time</option>
+          <option value="12">Timestamp</option>
+          </select>
+        </td>
+        <td><input id="parameter8other" type="text" name="parameter8other" value=""/></td>
+        <td><input type="text" name="parameter8value" value=""/></td>
+        <td><input class="checkbox" type="checkbox" name="parameter8isnull">Is null?</input></td>
+        <td><a href="#" onclick="removeParameter('parameter8');return false;"><small>Remove</small></a></td>
+      </tr>
+      </table>
+      <input type="hidden" name="parameter9state" value="off"/>
+      <table id="parameter9">
+      <tr>
+        <td>Type:</td>
+        <td></td>
+        <td>Value:</td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <select name="parameter9type" onchange="vendorSpecificParameter('parameter9');">
+          <option value="0">Vendor Specific</option>
+          <option value="1" selected="true">String</option>
+          <option value="2">Byte</option>
+          <option value="3">Short</option>
+          <option value="4">Integer</option>
+          <option value="5">Long</option>
+          <option value="6">Float</option>
+          <option value="7">Double</option>
+          <option value="8">Numeric</option>
+          <option value="9">Boolean</option>
+          <option value="10">Date</option>
+          <option value="11">Time</option>
+          <option value="12">Timestamp</option>
+          </select>
+        </td>
+        <td><input id="parameter9other" type="text" name="parameter9other" value=""/></td>
+        <td><input type="text" name="parameter9value" value=""/></td>
+        <td><input class="checkbox" type="checkbox" name="parameter9isnull">Is null?</input></td>
+        <td><a href="#" onclick="removeParameter('parameter9');return false;"><small>Remove</small></a></td>
+      </tr>
+      </table>
+      <input type="hidden" name="parameter10state" value="off"/>
+      <table id="parameter10">
+      <tr>
+        <td>Type:</td>
+        <td></td>
+        <td>Value:</td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td>
+          <select name="parameter10type" onchange="vendorSpecificParameter('parameter10');">
+          <option value="0">Vendor Specific</option>
+          <option value="1" selected="true">String</option>
+          <option value="2">Byte</option>
+          <option value="3">Short</option>
+          <option value="4">Integer</option>
+          <option value="5">Long</option>
+          <option value="6">Float</option>
+          <option value="7">Double</option>
+          <option value="8">Numeric</option>
+          <option value="9">Boolean</option>
+          <option value="10">Date</option>
+          <option value="11">Time</option>
+          <option value="12">Timestamp</option>
+          </select>
+        </td>
+        <td><input id="parameter10other" type="text" name="parameter10other" value=""/></td>
+        <td><input type="text" name="parameter10value" value=""/></td>
+        <td><input class="checkbox" type="checkbox" name="parameter10isnull">Is null?</input></td>
+        <td><a href="#" onclick="removeParameter('parameter10');return false;"><small>Remove</small></a></td>
+      </tr>
+      </table>
+      <table id="parameteradd">
+        <tr><td><a href="#" onclick="addParameter();return false;"><small>Add new parameter</small></a></td></tr>
+      </table>
+    </td>
+  </tr>
+  </table>
+  </form>
+  </body>
+</html>

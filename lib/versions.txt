@@ -1,0 +1,4 @@
+postgresql-8.2-504.jdbc3.jar
+hsqldb-1.8.0.7.jar
+log4j-1.2.11.jar
+jakarta-httpcore-4.0-alpha2.jar

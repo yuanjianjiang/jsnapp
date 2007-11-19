@@ -1,0 +1,41 @@
+Default settings are:
+*) internal database is on postgres.
+*) database connection pool size is 20.
+*) timeout for idle database connections is 10 minutes.
+*) authentication is turned on. no access control.
+*) thread pool core size is 0, maximum size is 100 and idle
+   timeout is 5 minutes.
+
+duration 1 minute. 10 client threads. clients _execute_
+"SELECT 1" on postgres. output formatted as csv.
+-------------------------------------------------------------
+SizePackedRequest        19.620 (100,00%)
+SecureSizePackedRequest   6.846  (34,89%)
+HttpRequest              10.425  (53,13%)
+SSLRequest                5.391  (27,48%)
+
+duration 1 minute. 10 client threads. clients _execute_
+"SELECT 1" on postgres. output formatted as xml and zipped.
+-------------------------------------------------------------
+SizePackedRequest        13.262 (100,00%)
+SecureSizePackedRequest   6.116  (46,12%)
+HttpRequest              10.417  (78,55%)
+SSLRequest                5.280  (39,81%)
+
+duration 1 minute. 10 client threads. clients _reserve,
+_access (once) and commit_ "SELECT 1" on postgres. output
+formatted as csv.
+-------------------------------------------------------------
+SizePackedRequest        11.921 (100,00%)
+SecureSizePackedRequest   3.037  (25,48%)
+HttpRequest               5.734  (48,10%)
+SSLRequest                2.281  (19,13%)
+
+duration 1 minute. 10 client threads. clients _reserve,
+_access (once) and commit_ "SELECT 1" on postgres. output
+formatted as xml and zipped.
+-------------------------------------------------------------
+SizePackedRequest         6.190 (100,00%)
+SecureSizePackedRequest   2.552  (41,23%)
+HttpRequest               4.561  (73,68%)
+SSLRequest                2.058  (33,25%)

@@ -1,0 +1,50 @@
+------>
+00999 E UnhandledException: A throwable was not properly handled
+------>
+01000 E ServerConfigureException: JSnap server could not be configured
+------>
+        ListenerException
+01001 E   ListenerCreateException: Listener could not be created [: %s]
+01002 E   ListenerStartException: Listener could not be started
+01003 W   ListenerIOException: Listener encountered an I/O exception
+------>
+01998 E DatabaseCreateException: Database could not be created [: %s]
+01999 E   NoDirectJDBCException: Use a JDBC database only indirectly with the actual driver class specified
+------>
+02000 D SqlException: Native SQL exception
+02001 W   ConnectException: Could not connect to the database
+02002 W     NoLongerUsableException: Database object is no longer usable
+02003 D     UnknownNameException: Database name is not recognized
+02004 D     OfflineException: Database is currently offline
+02005 D     TimeoutException: No database instance was available within the timeout period
+02006 W     InternalDbUnavailable: Internal management database is not available
+          ResultSetException
+02007 W     ResultSetNotBoundException: Result set is not bound to an underlying object
+02008 W     ResultSetNotScrollableException: Result set is not scrollable
+02009 W     ResultSetReadException: Could not read field from result set [: %s]
+02010 W     ResultSetNavigationException: Could not navigate within result set
+02011 D   CommitException: Could not commit transaction
+02012 D   RollbackException: Could not rollback transaction
+02013 E   InstanceInactiveException: Database instance is not active
+------>
+02200 D AccessKeyException: Access key does not map to a stored response
+02201 D   CommittedException: Transaction had been committed
+02202 D   RolledbackException: Transaction had been rolled back
+------>
+03000 D CommunicationException: Exception in the underlying communication protocol
+------>
+03001 D MalformedRequestException: Malformed request: %s
+------>
+03002 E MalformedResponseException: Malformed response: %s
+------>
+03003 D FormatterCreateException: Formatter could not be created [: %s]
+------>
+03100 W RejectedRequestException: Server was busy and rejected to execute the request
+------>
+        SecurityException
+          PasswordManagementException
+05000 D     LoginFailedException: Authentication failed [: %s]
+05001 D     PasswordRenewalException: Password renewal failed [: %s]
+05002 W   CredentialMismatchException: Current credentials do not match the original credentials
+05003 D   AccessDeniedException: Access to the database is denied: %s
+05100 E   KeyStoreInitiateException: Could not initiate key store
