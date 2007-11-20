@@ -1,3 +1,20 @@
+/************************************************************************
+ * This file is part of jsnap.                                          *
+ *                                                                      *
+ * jsnap is free software: you can redistribute it and/or modify        *
+ * it under the terms of the GNU General Public License as published by *
+ * the Free Software Foundation, either version 3 of the License, or    *
+ * (at your option) any later version.                                  *
+ *                                                                      *
+ * jsnap is distributed in the hope that it will be useful,             *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+ * GNU General Public License for more details.                         *
+ *                                                                      *
+ * You should have received a copy of the GNU General Public License    *
+ * along with jsnap.  If not, see <http://www.gnu.org/licenses/>.       *
+ ************************************************************************/
+
 package org.jsnap.response;
 
 import java.util.Comparator;
@@ -266,25 +283,6 @@ public final class ResponseTracker implements Runnable {
 					SortedSet<ResponseIdentifier> expired = new TreeSet<ResponseIdentifier>(keys.headSet(cutoff));
 					for (ResponseIdentifier rId: expired) {
 						StoredResponse response = store.get(rId);
-						// FIXME: Remove if block.
-						if (response == null) {
-							logger.log(Level.FATAL, "Something is terribly wrong!"); 
-							logger.log(Level.FATAL, "This is cutoff:");
-							logger.log(Level.FATAL, "until=" + Long.toString(cutoff.until));
-							logger.log(Level.FATAL, "key=" + Long.toString(cutoff.key));
-							SortedSet<ResponseIdentifier> head = keys.headSet(cutoff);
-							logger.log(Level.FATAL, "This is head:");
-							for (ResponseIdentifier r: head) {
-								logger.log(Level.FATAL, "until=" + Long.toString(r.until));
-								logger.log(Level.FATAL, "key=" + Long.toString(r.key));
-							}
-							SortedSet<ResponseIdentifier> tail = keys.headSet(cutoff);
-							logger.log(Level.FATAL, "This is tail:");
-							for (ResponseIdentifier r: tail) {
-								logger.log(Level.FATAL, "until=" + Long.toString(r.until));
-								logger.log(Level.FATAL, "key=" + Long.toString(r.key));
-							}
-						}
 						synchronized (response) {
 							if (response.closed())
 								response.clearNoLock();

@@ -1,3 +1,20 @@
+/************************************************************************
+ * This file is part of jsnap.                                          *
+ *                                                                      *
+ * jsnap is free software: you can redistribute it and/or modify        *
+ * it under the terms of the GNU General Public License as published by *
+ * the Free Software Foundation, either version 3 of the License, or    *
+ * (at your option) any later version.                                  *
+ *                                                                      *
+ * jsnap is distributed in the hope that it will be useful,             *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of       *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+ * GNU General Public License for more details.                         *
+ *                                                                      *
+ * You should have received a copy of the GNU General Public License    *
+ * along with jsnap.  If not, see <http://www.gnu.org/licenses/>.       *
+ ************************************************************************/
+
 package org.jsnap.db.base;
 
 import java.util.Comparator;
@@ -113,20 +130,6 @@ public final class DbInstanceTracker implements Runnable {
 					SortedSet<Long> idle = new TreeSet<Long>(timepoints.headSet(cutoff));
 					for (long timepoint: idle) {
 						Set<DbInstance> f = forward.get(timepoint);
-						// FIXME: Remove if block.
-						if (f == null) {
-							logger.log(Level.FATAL, "Something is terribly wrong!"); 
-							logger.log(Level.FATAL, "This is cutoff:");
-							logger.log(Level.FATAL, "t=" + Long.toString(cutoff));
-							SortedSet<Long> head = timepoints.headSet(cutoff);
-							logger.log(Level.FATAL, "This is head:");
-							for (Long t: head)
-								logger.log(Level.FATAL, "t=" + Long.toString(t));
-							SortedSet<Long> tail = timepoints.headSet(cutoff);
-							logger.log(Level.FATAL, "This is tail:");
-							for (Long t: tail)
-								logger.log(Level.FATAL, "t=" + Long.toString(t));
-						}
 						Set<DbInstance> s = new HashSet<DbInstance>(f);
 						for (DbInstance dbi: s) {
 							synchronized (dbi) {
