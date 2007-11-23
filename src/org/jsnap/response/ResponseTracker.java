@@ -17,15 +17,10 @@
 
 package org.jsnap.response;
 
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -38,61 +33,40 @@ import org.jsnap.exception.db.RollbackException;
 import org.jsnap.exception.db.RolledbackException;
 import org.jsnap.exception.security.CredentialMismatchException;
 import org.jsnap.security.Credentials;
-import org.jsnap.util.JThread;
+import org.jsnap.util.ScheduledJobExecutor;
 
-public final class ResponseTracker implements Runnable {
+public final class ResponseTracker extends ScheduledJobExecutor {
 	private static final long STATUS_QUERY_PERIOD = 60000; // 1 minute.
 
-	// Instances of ResponseIdentifier are compared by their keys (see equals),
-	// ordered by their expiry times. (see ResponseIdentifierComparator.)
-	public static class ResponseIdentifier {
-		public final int key;
-		public final long until;
+	private class ResponseTrackingJob extends ScheduledJob<StoredResponse> {
+		public ResponseTrackingJob(StoredResponse response) {
+			super(IGNORED_TIMEPOINT, response);
+		}
+
+		public ResponseTrackingJob(long timepoint, StoredResponse response) {
+			super(timepoint, response);
+		}
+
+		public int hashCode() {
+			return object.hashCode();
+		}
 
 		public boolean equals(Object obj) {
-			if (obj instanceof ResponseIdentifier) {
-				ResponseIdentifier rId = (ResponseIdentifier)obj;
-				return (this.key == rId.key);
+			if (obj != null && obj instanceof ResponseTrackingJob) {
+				ResponseTrackingJob job = (ResponseTrackingJob)obj;
+				return (object.equals(job.object));
 			}
 			return false;
 		}
 
-		public int hashCode() {
-			return key;
-		}
-
-		public String toString() {
-			return Integer.toString(key);
-		}
-
-		// Instances of ResponseKey are created only by the ResponseTracker class.
-		private ResponseIdentifier() {
-			this(0, 0);
-		}
-
-		private ResponseIdentifier(int key) {
-			this(key, 0);
-		}
-
-		private ResponseIdentifier(int key, long keepalive) {
-			this.key = key;
-			this.until = System.currentTimeMillis() + keepalive;
-		}
-	}
-
-	private static class ResponseIdentifierComparator implements Comparator<ResponseIdentifier> {
-		public static final ResponseIdentifierComparator INSTANCE = new ResponseIdentifierComparator();
-
-		public boolean equals(Object obj) {
-			return (obj instanceof ResponseIdentifierComparator);
-		}
-
-		public int compare(ResponseIdentifier o1, ResponseIdentifier o2) {
-			if (o1.until < o2.until)
-				return -1;
-			else if (o1.until > o2.until)
-				return 1;
-			return 0;
+		public void run() {
+			StoredResponse sr = object;
+			synchronized (sr) {
+				if (sr.closed())
+					sr.clearNoLock();
+				else
+					sr.closeNoLock();
+			}
 		}
 	}
 
@@ -100,17 +74,29 @@ public final class ResponseTracker implements Runnable {
 		private boolean f, cm, pn;
 		private final DbInstance dbi;
 		public final Response response;
-		public final ResponseIdentifier identifier;
+		public final int key;
 
 		// Instances of StoredResponse are created only by the ResponseTracker class.
-		private StoredResponse(ResponseIdentifier identifier, Response response, DbInstance dbi) {
+		private StoredResponse(int key, Response response, DbInstance dbi) {
 			this.dbi = dbi;
 			this.response = response;
 			this.response.setOwner(this);
-			this.identifier = identifier;
+			this.key = key;
 			this.f = false;
 			this.cm = false;
 			this.pn = true;
+		}
+
+		public int hashCode() {
+			return key;
+		}
+
+		public boolean equals(Object obj) {
+			if (obj != null && obj instanceof StoredResponse) {
+				StoredResponse sr = (StoredResponse)obj;
+				return (key == sr.key);
+			}
+			return false;
 		}
 
 		public void check(Credentials credentials) throws CredentialMismatchException, AccessKeyException {
@@ -128,13 +114,13 @@ public final class ResponseTracker implements Runnable {
 			dbi.commit();
 			cm = true;
 			pn = false;
-			Logger.getLogger(ResponseTracker.class).log(Level.DEBUG, "Committed (key: " + identifier.key + ")");
+			Logger.getLogger(ResponseTracker.class).log(Level.DEBUG, "Committed (key: " + key + ")");
 		}
 
 		public void rollback() throws RollbackException, InstanceInactiveException {
 			dbi.rollback();
 			pn = false;
-			Logger.getLogger(ResponseTracker.class).log(Level.DEBUG, "Rolled back (key: " + identifier.key + ")");
+			Logger.getLogger(ResponseTracker.class).log(Level.DEBUG, "Rolled back (key: " + key + ")");
 		}
 
 		public boolean pending() {
@@ -173,27 +159,16 @@ public final class ResponseTracker implements Runnable {
 		}
 	}
 
-	private final Lock mutex;
+	// super.mutex is used while accessing these private variables:
 	private final Random random;
-	private final Thread executingThread;
-	private SortedSet<ResponseIdentifier> keys;
-	private final HashMap<ResponseIdentifier, StoredResponse> store;
-	private boolean running = true, terminated = false;
-	private Object pillow = new Object();
-	private long nextWakeUp;
-
-	private static final long MINIMUM_SLEEP_PERIOD = 1000; // 1 second.
-	private static final long SLEEP_TIL_INTERRUPTED = 0;
+	private final Set<Integer> keys;
+	private final HashMap<Integer, StoredResponse> store;
 
 	public ResponseTracker() {
-		mutex = new ReentrantLock(true); // fair.
+		super ("RpsTracker");
 		random = new Random();
-		keys = new TreeSet<ResponseIdentifier>(ResponseIdentifierComparator.INSTANCE);
-		store = new HashMap<ResponseIdentifier, StoredResponse>();
-		executingThread = JThread.newDaemonThread("RpsTracker", this);
-		executingThread.setPriority(Thread.MAX_PRIORITY);
-		executingThread.start();
-		nextWakeUp = Long.MAX_VALUE;
+		keys = new HashSet<Integer>();
+		store = new HashMap<Integer, StoredResponse>();
 	}
 
 	// Wraps the three objects sent as parameters into a StoredResponse object.
@@ -210,29 +185,21 @@ public final class ResponseTracker implements Runnable {
 				key = random.nextInt();
 				if (key < 0)
 					key = -key; // Do not allow negative key values.
-				if (keys.contains(new ResponseIdentifier(key)))
+				if (keys.contains(key))
 					key = -1; // Produce another key, this is not unique.
 			}
 			// Associate response with the unique key.
 			response.setKey(key);
-			// Create a response identifier with the unique key found above.
-			ResponseIdentifier rId = new ResponseIdentifier(key, keepalive);
 			// Create the stored response and store it internally.
-			sr = new StoredResponse(rId, response, dbi);
-			keys.add(rId);
-			store.put(rId, sr);
-			// Wake up the clean up thread if necessary.
-			synchronized (pillow) { 				 // Need to lock pillow to access nextWakeUp.
-				if (rId.until < nextWakeUp) { 		 // This response expires sooner than
-					long d = nextWakeUp - rId.until; // the clean up thread's next wake up;
-					if (d >= MINIMUM_SLEEP_PERIOD)	 // interrupt the clean up thread so that
-						executingThread.interrupt(); // it updates its internals.
-				}
-			}
+			long expiresAt = System.currentTimeMillis() + keepalive;
+			sr = new StoredResponse(key, response, dbi);
+			addJobNoLock(new ResponseTrackingJob(expiresAt, sr));
+			keys.add(key);
+			store.put(key, sr);
 		} finally {
 			mutex.unlock();
 		}
-		Logger.getLogger(ResponseTracker.class).log(Level.DEBUG, "Created a stored response (key: " + sr.identifier + ")");
+		Logger.getLogger(ResponseTracker.class).log(Level.DEBUG, "Created a stored response (key: " + sr.key + ")");
 		return sr;
 	}
 
@@ -240,110 +207,44 @@ public final class ResponseTracker implements Runnable {
 		mutex.lock();
 		try {
 			preserveForStatusQueryNoLock(sr);
-			synchronized (pillow) {
-				pillow.notify();
-			}
 		} finally {
 			mutex.unlock();
 		}
 	}
 
 	private void preserveForStatusQueryNoLock(StoredResponse sr) {
-		keys.remove(sr.identifier);
-		keys.add(new ResponseIdentifier(sr.identifier.key, STATUS_QUERY_PERIOD));
-		Logger.getLogger(ResponseTracker.class).log(Level.DEBUG, "Stored response is in status inquiry state (key: " + sr.identifier + ")");
+		long now = System.currentTimeMillis();
+		addJobNoLock(new ResponseTrackingJob(now + STATUS_QUERY_PERIOD, sr)); // Overwrites the old one.
+		Logger.getLogger(ResponseTracker.class).log(Level.DEBUG, "Stored response is in status inquiry state (key: " + sr.key + ")");
 	}
 
 	private void removeFromTrackerNoLock(StoredResponse sr) {
-		keys.remove(sr.identifier);
-		store.remove(sr.identifier);
-		Logger.getLogger(ResponseTracker.class).log(Level.DEBUG, "Cleaned up a stored response (key: " + sr.identifier + ")");
+		removeJobNoLock(new ResponseTrackingJob(sr));
+		keys.remove(sr.key);
+		store.remove(sr.key);
+		Logger.getLogger(ResponseTracker.class).log(Level.DEBUG, "Cleaned up a stored response (key: " + sr.key + ")");
 	}
 
 	// Returns the StoredResponse associated with the given key.
 	public StoredResponse get(int key) {
 		mutex.lock();
 		try {
-			return store.get(new ResponseIdentifier(key));
+			return store.get(key);
 		} finally {
 			mutex.unlock();
 		}
 	}
 
-	public void run() {
-		Logger logger = Logger.getLogger(ResponseTracker.class);
-		logger.log(Level.INFO, "Up and running");
-		while (running) {
-			long sleep = SLEEP_TIL_INTERRUPTED;
-			logger.log(Level.DEBUG, "Woke up");
-			mutex.lock();
-			try {
-				if (keys.size() > 0) { // Leave immediately when no responses are stored.
-					ResponseIdentifier cutoff = new ResponseIdentifier();
-					SortedSet<ResponseIdentifier> expired = new TreeSet<ResponseIdentifier>(keys.headSet(cutoff));
-					for (ResponseIdentifier rId: expired) {
-						StoredResponse response = store.get(rId);
-						synchronized (response) {
-							if (response.closed())
-								response.clearNoLock();
-							else
-								response.closeNoLock();
-						}
-					}
-					keys = keys.tailSet(cutoff);
-					if (keys.size() > 0) {
-						sleep = keys.first().until - cutoff.until;
-						if (sleep < MINIMUM_SLEEP_PERIOD)
-							sleep = MINIMUM_SLEEP_PERIOD;
-					}
-				}
-			} finally {
-				mutex.unlock();
-			}
-			logger.log(Level.DEBUG, "Done, calling wait(" + sleep + ")");
-			synchronized (pillow) {
-				try {
-					nextWakeUp = (sleep == SLEEP_TIL_INTERRUPTED ? Long.MAX_VALUE : System.currentTimeMillis() + sleep);
-					if (running)
-						pillow.wait(sleep);
-				} catch (InterruptedException leave) {
-				}
-			}
-		}
-		synchronized (pillow) {
-			pillow.notify();
-			terminated = true;
-		}
-		logger.log(Level.INFO, "Terminated");
-	}
-
-	public void shutdown() {
-		synchronized (pillow) {
-			running = false;
-			executingThread.interrupt();
-			// Wait until the executing thread stops running.
-			while (terminated == false) {
-				try {
-					pillow.wait();
-				} catch (InterruptedException e) {
-				}
-			}
-		}
-		cleanUp();
-	}
-
-	private void cleanUp() {
+	protected void cleanUp() {
 		mutex.lock();
 		try {
-			// Allocate a new set to avoid ConcurrentModificationException.
-			Set<ResponseIdentifier> storedKeys = new HashSet<ResponseIdentifier>(store.keySet());
-			for (ResponseIdentifier rId: storedKeys) {
-				StoredResponse response = store.get(rId);
+			Set<Integer> copy = new HashSet<Integer>(keys); // To avoid ConcurrentModificationException.
+			for (int key: copy) {
+				StoredResponse response = store.get(key);
 				synchronized (response) {
-					response.clearNoLock();
+					response.clearNoLock(); // Modifies keys.
 				}
 			}
-			keys.clear();
 		} finally {
 			mutex.unlock();
 		}

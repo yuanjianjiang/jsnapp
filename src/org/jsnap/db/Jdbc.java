@@ -81,7 +81,7 @@ public class Jdbc extends Database {
 				try {
 					conn.close();
 				} catch (SQLException ignore) {
-					Logger.getLogger(JdbcInstance.class).log(Level.DEBUG, "Ignored an SQL exception during connection close", ignore);
+					Logger.getLogger(JdbcInstance.class).log(Level.DEBUG, "Ignored a SQL exception during connection close", ignore);
 				} finally {
 					conn = null;
 				}
@@ -135,7 +135,7 @@ public class Jdbc extends Database {
 					try {
 						stmt.close();
 					} catch (SQLException ignore) {
-						Logger.getLogger(JdbcStatement.class).log(Level.DEBUG, "Ignored an SQL exception during statement close", ignore);
+						Logger.getLogger(JdbcStatement.class).log(Level.DEBUG, "Ignored a SQL exception during statement close", ignore);
 					}
 					throw new SqlException(prop.name, e);
 				}
@@ -207,7 +207,7 @@ public class Jdbc extends Database {
 					try {
 						stmt.close();
 					} catch (SQLException ignore) {
-						Logger.getLogger(JdbcStatement.class).log(Level.DEBUG, "Ignored an SQL exception during statement close", ignore);
+						Logger.getLogger(JdbcStatement.class).log(Level.DEBUG, "Ignored a SQL exception during statement close", ignore);
 					}
 					throw new SqlException(prop.name, e);
 				}
@@ -221,7 +221,7 @@ public class Jdbc extends Database {
 					try {
 						stmt.close();
 					} catch (SQLException ignore) {
-						Logger.getLogger(JdbcStatement.class).log(Level.DEBUG, "Ignored an SQL exception during statement close", ignore);
+						Logger.getLogger(JdbcStatement.class).log(Level.DEBUG, "Ignored a SQL exception during statement close", ignore);
 					}
 					throw new SqlException(prop.name, e);
 				}
@@ -243,7 +243,7 @@ public class Jdbc extends Database {
 						try {
 							stmt.close();
 						} catch (SQLException ignore) {
-							Logger.getLogger(JdbcStatement.class).log(Level.DEBUG, "Ignored an SQL exception during statement close", ignore);
+							Logger.getLogger(JdbcStatement.class).log(Level.DEBUG, "Ignored a SQL exception during statement close", ignore);
 						}
 					}
 				}
@@ -492,13 +492,13 @@ public class Jdbc extends Database {
 				if (generatedBy != null)
 					generatedBy.close();
 			} catch (SQLException ignore) {
-				Logger.getLogger(JdbcResultSet.class).log(Level.DEBUG, "Ignored an SQL exception during statement close", ignore);
+				Logger.getLogger(JdbcResultSet.class).log(Level.DEBUG, "Ignored a SQL exception during statement close", ignore);
 			}
 			try {
 				if (rs != null)
 					rs.close();
 			} catch (SQLException ignore) {
-				Logger.getLogger(JdbcResultSet.class).log(Level.DEBUG, "Ignored an SQL exception during result set close", ignore);
+				Logger.getLogger(JdbcResultSet.class).log(Level.DEBUG, "Ignored a SQL exception during result set close", ignore);
 			}
 		}
 	}

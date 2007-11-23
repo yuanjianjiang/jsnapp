@@ -97,7 +97,6 @@ public final class Dbregistry {
 				for (WebPage page: pages)
 					pageList.add(page);
 			}
-			pageList.add(instanceTracker.getPage());
 		} finally {
 			read.unlock();
 		}
