@@ -46,22 +46,26 @@ public abstract class DbInstance {
 		return owner.prop.name;
 	}
 
-	public long getLastActive() {
-		return (active ? System.currentTimeMillis() : lastActive);
-	}
-
 	public void close() { // Calling close on an already closed instance is a no-op.
 		if (active) {
 			try {
 				doReset();
 			} catch (SQLException ignore) {
-				Logger.getLogger(this.getClass()).log(Level.DEBUG, "Ignored an SQL exception during reset", ignore);
+				Logger.getLogger(this.getClass()).log(Level.DEBUG, "Ignored a SQL exception during reset", ignore);
 			}
 			lastActive = System.currentTimeMillis();
 			active = false;
-			owner.markInstanceAsIdle(this);
-			owner.returnInstance(this);
+			owner.handleEvent(Database.IDLE, this);
+			owner.handleEvent(Database.RETURN, this);
 		}
+	}
+
+	public synchronized long getLastActive() {
+		return (active ? System.currentTimeMillis() : lastActive);
+	}
+
+	public synchronized boolean connected() {
+		return connected;
 	}
 
 	public synchronized boolean connect() throws ConnectException {
@@ -71,11 +75,23 @@ public abstract class DbInstance {
 			try {
 				if (connected) {
 					reset = true;
-					disconnect(false);
+					owner.handleEvent(Database.RESET, this);
 				}
-				connectInternal();
+				if (owner.offline()) {
+					throw new OfflineException(owner.prop.name);
+				} else {
+					try {
+						doConnect();
+						Logger.getLogger(this.getClass()).log(Level.INFO, "Connected to " + owner.prop.name);
+						owner.takeOnline();
+					} catch (SQLException e) {
+						ConnectException x = new ConnectException(owner.prop.name, e);
+						exception(e);
+						throw x;
+					}
+				}
 			} catch (ConnectException e) {
-				owner.returnInstance(this); // Returns instance to the database pool.
+				owner.handleEvent(Database.RETURN, this); // Returns instance to the connection pool.
 				throw e;
 			}
 		}
@@ -84,23 +100,7 @@ public abstract class DbInstance {
 		return reset;
 	}
 
-	private void connectInternal() throws ConnectException {
-		if (owner.offline()) {
-			throw new OfflineException(owner.prop.name);
-		} else {
-			try {
-				doConnect();
-				Logger.getLogger(this.getClass()).log(Level.INFO, "Connected to " + owner.prop.name);
-				owner.takeOnline();
-			} catch (SQLException e) {
-				ConnectException x = new ConnectException(owner.prop.name, e);
-				exception(e);
-				throw x;
-			}
-		}
-	}
-
-	public void disconnect(boolean log) {
+	public synchronized void disconnect(boolean log) {
 		if (connected) {
 			doDisconnect();
 			if (log)
@@ -172,7 +172,7 @@ public abstract class DbInstance {
 
 	protected abstract void doRollback() throws SQLException;
 
-	// This function is called everytime an SQLException is encountered
+	// This function is called everytime a SQLException is encountered
 	// by the database instance object. Implement it for database specific
 	// exception handling.
 	protected abstract void doException(SQLException e);

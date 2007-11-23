@@ -171,7 +171,7 @@ public abstract class Database {
 						// Remove allocated instances only if necessary.
 						while (pool.isEmpty() == false && removed < remove) {
 							DbInstance dbi = pool.pop();
-							dbi.disconnect(true);
+							instanceTracker.disconnectImmediately(dbi, true);
 							++removed;
 						}
 					}
@@ -181,12 +181,13 @@ public abstract class Database {
 							DbInstance dbi = pool.elementAt(i);
 							if (dbi != null) {
 								synchronized (dbi) {
-									long lastActive = dbi.getLastActive();
-									if (lastActive + prop.idletimeout < now)
-										dbi.disconnect(true);
+									long newTimepoint = dbi.getLastActive() + (prop.idletimeout * 1000);
+									if (newTimepoint < now) {
+										instanceTracker.disconnectImmediately(dbi, true);
+									} else {
+										instanceTracker.disconnectIfIdleAt(newTimepoint, dbi, true);
+									}
 								}
-								//long lastActive = dbi.getLastActive();
-								//instanceTracker.disconnectIfIdleAt(dbi, lastActive + prop.idletimeout * 1000);
 							}
 						}
 					}
@@ -211,7 +212,7 @@ public abstract class Database {
 				while (pool.isEmpty() == false) {
 					DbInstance dbi = pool.pop();
 					if (dbi != null)
-						dbi.disconnect(true);
+						instanceTracker.disconnectImmediately(dbi, true);
 				}
 			}
 		} finally {
@@ -449,31 +450,57 @@ public abstract class Database {
 		throw new TimeoutException(prop.name); // Timeout is certain if control gets here.
 	}
 
-	protected void returnInstance(DbInstance dbi) {
-		boolean disconnect = false;
-		read.lock(); // For reading prop.poolSize.
-		try {
-			synchronized (pillow) {
-				boolean push = (usable && (pool.size() + 1) <= prop.pool);
-				if (push) {
-					if (pool.isEmpty())
-						pillow.notify();
-					pool.push(dbi);
-				} else {
-					disconnect = true; // Does not block pillow with a forceDisonnect.
-				}
-			}
-		} finally {
-			read.unlock();
-		}
-		if (disconnect) {
-			dbi.disconnect(true);
+	protected abstract DbInstance getInstanceInternal();
+
+	private void prepareInstance(DbInstance dbi, boolean newlyAllocated) throws ConnectException {
+		boolean reset = dbi.connect();
+		Logger logger = Logger.getLogger(this.getClass());
+		if (newlyAllocated) {
+			logger.log(Level.DEBUG, "Opened a new connection to " + prop.name);
 		} else {
-			Logger.getLogger(this.getClass()).log(Level.DEBUG, "Connection to " + prop.name + " is returned to the pool");
+			if (reset)
+				logger.log(Level.DEBUG, "Database ping had failed, connection was reset");
+			else
+				logger.log(Level.DEBUG, "Acquired pooled connection to " + prop.name);
 		}
 	}
 
-	protected abstract DbInstance getInstanceInternal();
+	protected static int IDLE = 0;
+	protected static int RESET = 1;
+	protected static int RETURN = 2;
+
+	protected void handleEvent(int event, DbInstance dbi) {
+		if (event == IDLE) {
+			if (prop.idletimeout > 0) { // Zero means no timeout.
+				long timepoint = System.currentTimeMillis() + prop.idletimeout * 1000;
+				instanceTracker.disconnectIfIdleAt(timepoint, dbi, true);
+			}
+		} else if (event == RESET) {
+			instanceTracker.disconnectImmediately(dbi, false);
+		} else if (event == RETURN) {
+			boolean disconnect = false;
+			read.lock(); // For reading prop.poolSize.
+			try {
+				synchronized (pillow) {
+					boolean push = (usable && (pool.size() + 1) <= prop.pool);
+					if (push) {
+						if (pool.isEmpty())
+							pillow.notify();
+						pool.push(dbi);
+					} else {
+						disconnect = true; // Does not block pillow with a forceDisonnect.
+					}
+				}
+			} finally {
+				read.unlock();
+			}
+			if (disconnect) {
+				instanceTracker.disconnectImmediately(dbi, true);
+			} else {
+				Logger.getLogger(this.getClass()).log(Level.DEBUG, "Connection to " + prop.name + " is returned to the pool");
+			}
+		}
+	}
 
 	private boolean offlineInternal() {
 		return (nextAvailTime > System.currentTimeMillis());
@@ -494,26 +521,6 @@ public abstract class Database {
 			return prop.initial;
 		else
 			return increment + prop.increment;
-	}
-
-	private void prepareInstance(DbInstance dbi, boolean newlyAllocated) throws ConnectException {
-		boolean reset = dbi.connect();
-		Logger logger = Logger.getLogger(this.getClass());
-		if (newlyAllocated) {
-			logger.log(Level.DEBUG, "Opened a new connection to " + prop.name);
-		} else {
-			if (reset)
-				logger.log(Level.DEBUG, "Database ping had failed, connection was reset");
-			else
-				logger.log(Level.DEBUG, "Acquired pooled connection to " + prop.name);
-		}
-	}
-
-	protected void markInstanceAsIdle(DbInstance dbi) {
-		if (prop.idletimeout > 0) { // Zero means no timeout.
-			long timepoint = System.currentTimeMillis() + prop.idletimeout * 1000;
-			instanceTracker.disconnectIfIdleAt(dbi, timepoint);
-		}
 	}
 
 	public final DbProperties prop;

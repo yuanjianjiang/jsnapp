@@ -48,13 +48,13 @@
 		</layout>
 	</appender-->
 
-	<logger name="org.jsnap.server.Workers$Worker">
+	<!--logger name="org.jsnap.server.Workers$Worker">
 		<level value="DEBUG"/>
 	</logger>
 	<logger name="org.jsnap.http.WebConsoleRequest$WebConsoleServlet">
 		<level value="DEBUG"/>
 	</logger>
-	<!--logger name="org.jsnap.db.base.DbInstanceTracker">
+	<logger name="org.jsnap.db.base.DbInstanceTracker">
 		<level value="DEBUG"/>
 	</logger>
 	<logger name="org.jsnap.response.ResponseTracker">
